@@ -36,7 +36,7 @@ class Engine:
     def load_language(self):
         all_files = self.get_all_files_in_path(self.path)
         for filepath in all_files:
-            with open(filepath) as f:
+            with open(filepath, encoding='utf-8') as f:
                 data = yaml.safe_load(f)
                 language_to_load = data.get("language")
                 logging.debug(f"Loading : {language_to_load}")

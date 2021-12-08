@@ -6,15 +6,14 @@
 #
 # All rights reserved.
 
-import logging
-import os
 import time
+import logging
 import motor.motor_asyncio
 from pyrogram import Client
-
 from .config_var import Config
 
 # Note StartUp Time - To Capture Uptime.
+
 start_time = time.time()
 friday_version = "V9.0"
 

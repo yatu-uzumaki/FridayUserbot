@@ -6,30 +6,26 @@
 #
 # All rights reserved.
 
-import json
-import logging
+
 import os
+import json
 import random
-import shutil
 import urllib
-from re import findall
-
 import requests
-from bs4 import BeautifulSoup
 from PIL import Image
+from bs4 import BeautifulSoup
 from pyrogram.types import InputMediaPhoto
-
 from main_startup.core.decorators import friday_on_cmd
-from main_startup.helper_func.basic_helpers import edit_or_reply, get_text, runcmd, run_in_exc
 from main_startup.helper_func.gmdl import googleimagesdownload
+from main_startup.helper_func.basic_helpers import edit_or_reply, get_text, run_cmd, run_in_exc
 
 opener = urllib.request.build_opener()
-useragent = "Mozilla/5.0 (Linux; Android 9; SM-G960F Build/PPR1.180610.011; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/74.0.3729.157 Mobile Safari/537.36"
-opener.addheaders = [("User-agent", useragent)]
+user_agent = "Mozilla/5.0 (Linux; Android 9; SM-G960F Build/PPR1.180610.011; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/74.0.3729.157 Mobile Safari/537.36"
+opener.addheaders = [("User-agent", user_agent)]
 
-sedpath = "./yandex/"
-if not os.path.isdir(sedpath):
-    os.makedirs(sedpath)
+folder_path = "./yandex/"
+if not os.path.isdir(folder_path):
+    os.makedirs(folder_path)
 
 
 @friday_on_cmd(
@@ -53,7 +49,7 @@ async def lgo(client, message):
         return
     lol = await message.reply_to_message.download("tgs.tgs")
     cmdo = f"lottie_convert.py {lol} json.json"
-    await runcmd(cmdo)
+    await run_cmd(cmdo)
     if not os.path.exists('json.json'):
         await pablo.edit(engine.get_string("NEEDS_REPLY").format("Animated Sticker"))
         os.remove("tgs.tgs")
@@ -68,7 +64,7 @@ async def lgo(client, message):
         .replace("[5]", "[6]")
     )
     open("json.json", "w").write(jsn)
-    await runcmd(f"lottie_convert.py json.json tgs.tgs")
+    await run_cmd(f"lottie_convert.py json.json tgs.tgs")
     await client.send_sticker(message.chat.id, "tgs.tgs")
     os.remove("json.json")
     os.remove(lol)
@@ -146,7 +142,7 @@ async def reverseing(client, message):
     await pablo.edit(f"[{guess}]({fetchUrl})\n\n[Visually similar images]({imgspage})", disable_web_page_preview=True)
     if input_ and input_.isdigit():
         lim = int(input_)
-        lst, Beast = await download_imgs_from_google(quess, lim)
+        lst, Beast = await download_imgs_from_google(guess, lim)
         await client.send_media_group(message.chat.id, media=Beast)
         await rm_multiple_files(Beast)
 @run_in_exc

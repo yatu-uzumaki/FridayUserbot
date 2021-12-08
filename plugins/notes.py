@@ -82,13 +82,13 @@ async def notes(client, message):
 )
 async def noteses(client, message):
     engine = message.Engine
-    pablo = await edit_or_reply(message, engine.get_string("PROCESSING"))
-    poppy = await all_note(message.chat.id)
-    if poppy is False:
-        await pablo.edit(engine.get_string("FILTER_3").format("Notes"))
+    status_msg = await edit_or_reply(message, engine.get_string("PROCESSING"))
+    available_notes = await all_note(message.chat.id)
+    if available_notes is False:
+        await status_msg.edit(engine.get_string("FILTER_3").format("Notes"))
         return
     await del_notes(message.chat.id)
-    await pablo.edit(engine.get_string("REMOVED_ALL").format("Notes"))
+    await status_msg.edit(engine.get_string("REMOVED_ALL").format("Notes"))
 
 
 @friday_on_cmd(
@@ -97,14 +97,14 @@ async def noteses(client, message):
 )
 async def noteses(client, message):
     engine = message.Engine
-    pablo = await edit_or_reply(message, engine.get_string("PROCESSING"))
-    poppy = await all_note(message.chat.id)
-    if poppy is False:
-        await pablo.edit(engine.get_string("FILTER_3").format("Notes"))
+    status_msg = await edit_or_reply(message, engine.get_string("PROCESSING"))
+    available_notes = await all_note(message.chat.id)
+    if available_notes is False:
+        await status_msg.edit(engine.get_string("FILTER_3").format("Notes"))
         return
-    kk = "".join(f"""\n~ `{Escobar.get("keyword")}`""" for Escobar in poppy)
+    kk = "".join(f"""\n~ `{x.get("keyword")}`""" for x in available_notes)
     X = await client.get_chat(message.chat.id)
     grp_nme = X.title
     mag = engine.get_string("LIST_OF").format("Notes", grp_nme, kk)
     mag += "\n\nGet Notes With `#Notename`"
-    await pablo.edit(mag)
+    await status_msg.edit(mag)

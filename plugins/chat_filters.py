@@ -49,11 +49,11 @@ async def del_filterz(client, message):
 async def show_filters(client, message):
     engine = message.Engine
     pablo = await edit_or_reply(message, engine.get_string("PROCESSING"))
-    poppy = await all_filters(int(message.chat.id))
-    if poppy is False:
+    availbale_filters = await all_filters(int(message.chat.id))
+    if availbale_filters is False:
         await pablo.edit(engine.get_string("FILTER_3").format("Filters"))
         return
-    kk = "".join(f"\n > `{Escobar.get('keyword')}`" for Escobar in poppy)
+    kk = "".join(f"\n > `{x.get('keyword')}`" for x in availbale_filters)
     mag = engine.get_string("LIST_OF").format("Filters", message.chat.title, kk)
     await pablo.edit(mag)
 
@@ -145,10 +145,10 @@ async def is_media(message):
 )
 async def del_all_filters(client, message):
     engine = message.Engine
-    pablo = await edit_or_reply(message, engine.get_string("PROCESSING"))
-    poppy = await all_filters(int(message.chat.id))
-    if poppy is False:
-        await pablo.edit(engine.get_string("FILTER_3").format("Filters"))
+    status_msg = await edit_or_reply(message, engine.get_string("PROCESSING"))
+    available_filters = await all_filters(int(message.chat.id))
+    if available_filters is False:
+        await status_msg.edit(engine.get_string("FILTER_3").format("Filters"))
         return
     await filters_del(int(message.chat.id))
-    await pablo.edit(engine.get_string("REMOVED_ALL").format("Filters"))
+    await status_msg.edit(engine.get_string("REMOVED_ALL").format("Filters"))

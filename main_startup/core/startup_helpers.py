@@ -6,19 +6,16 @@
 #
 # All rights reserved.
 
-import asyncio
 import glob
-import importlib
-import logging
-from main_startup import Config
-import ntpath
 import shlex
-from typing import Tuple
-import sys
-from datetime import datetime
-from os import environ, execle, path, remove
-import heroku3
+import ntpath
+import asyncio
+import logging
+import importlib
 from git import Repo
+from typing import Tuple
+from datetime import datetime
+from main_startup import Config
 from git.exc import GitCommandError, InvalidGitRepositoryError, NoSuchPathError
 
 REPO_ = Config.UPSTREAM_REPO
@@ -35,7 +32,7 @@ def load_xtra_mod(plugin_name):
 
 
 def load_plugin(plugin_name, assistant=False):
-    """Load PLugins - Assitant & User Using ImportLib"""
+    """Load PLugins - Assistant & User Using ImportLib"""
     if (
         not plugin_name.endswith("__")
         and plugin_name not in Config.MAIN_NO_LOAD
@@ -49,15 +46,12 @@ def load_plugin(plugin_name, assistant=False):
         logging.info(f"{loader_type} - Loaded : " + str(plugin_name))
 
 
-def plugin_collecter(path):
+def plugin_collector(path):
     """Collects All Files In A Path And Give Its Name"""
     if path.startswith("/"):
         path = path[1:]
-    pathe = path + "*.py" if path.endswith("/") else path + "/*.py"
-    Poppy = glob.glob(pathe)
     final = []
-    Pop = Poppy
-    for x in Pop:
+    for x in glob.glob(path + "*.py" if path.endswith("/") else path + "/*.py"):
         k = ntpath.basename(x)
         if k.endswith(".py"):
             lily = k.replace(".py", "")

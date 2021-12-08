@@ -6,16 +6,15 @@
 #
 # All rights reserved.
 
-import asyncio
-import logging
-import math
 import os
-import shlex
+import math
 import time
+import shlex
+import asyncio
 from math import ceil
-from traceback import format_exc
-from typing import Tuple
 from pyrogram import Client
+from traceback import format_exc
+from typing import Tuple, Union
 from pyrogram.errors import FloodWait, MessageNotModified
 from pyrogram.types import (
     InlineKeyboardButton,
@@ -23,14 +22,13 @@ from pyrogram.types import (
     InputTextMessageContent,
     Message,
 )
-from main_startup import Friday, Friday2, Friday3, Friday4
-from database.sudodb import sudo_list
-from main_startup.config_var import Config
-import multiprocessing
 import mimetypes
 import functools
-import threading
+import multiprocessing
+from database.sudodb import sudo_list
+from main_startup.config_var import Config
 from concurrent.futures import ThreadPoolExecutor
+from main_startup import Friday, Friday2, Friday3, Friday4
 
 max_workers = multiprocessing.cpu_count() * 5
 exc_ = ThreadPoolExecutor(max_workers=max_workers)
@@ -45,7 +43,7 @@ def guess_mime_type(file_):
         return s[0]
 
 
-def get_user(message: Message, text: str) -> [int, str, None]:
+def get_user(message: Message, text: str) -> Union[Tuple[int, str], None]:
     """Get User From Message"""
     if text is None:
         asplit = None
@@ -130,17 +128,17 @@ def get_readable_time(seconds: int) -> int:
 async def get_all_pros() -> list:
     """Get All Users , Sudo + Owners + Other Clients"""
     users = await sudo_list()
-    ujwal = Friday.me
-    users.append(ujwal.id)
+    current_user = Friday.me
+    users.append(current_user.id)
     if Friday2:
-        ujwal2 = Friday2.me
-        users.append(ujwal2.id)
+        current_user2 = Friday2.me
+        users.append(current_user2.id)
     if Friday3:
-        ujwal3 = Friday3.me
-        users.append(ujwal3.id)
+        current_user3 = Friday3.me
+        users.append(current_user3.id)
     if Friday4:
-        ujwal4 = Friday4.me
-        users.append(ujwal4.id)
+        current_user4 = Friday4.me
+        users.append(current_user4.id)
     return users
 
 
@@ -345,7 +343,7 @@ async def cb_progress(current, total, cb, start, type_of_ps, file_name=None):
         )
         if file_name:
             try:
-                await cb.edit_message_text(
+                await cb.message.edit(
                     "{}\n**File Name:** `{}`\n{}".format(type_of_ps, file_name, tmp)
                 )
             except FloodWait as e:
@@ -354,14 +352,14 @@ async def cb_progress(current, total, cb, start, type_of_ps, file_name=None):
                 pass
         else:
             try:
-                await message.edit_message_text("{}\n{}".format(type_of_ps, tmp))
+                await cb.message.edit("{}\n{}".format(type_of_ps, tmp))
             except FloodWait as e:
                 await asyncio.sleep(e.x)
             except MessageNotModified:
                 pass
 
 
-def get_text(message: Message) -> [None, str]:
+def get_text(message: Message) -> Union[str, None]:
     """Extract Text From Commands"""
     text_to_return = message.text
     if message.text is None:
@@ -375,7 +373,7 @@ def get_text(message: Message) -> [None, str]:
         return None
 
 
-async def runcmd(cmd: str) -> Tuple[str, str, int, int]:
+async def run_cmd(cmd: str) -> Tuple[str, str, int, int]:
     """ run command in terminal """
     args = shlex.split(cmd)
     process = await asyncio.create_subprocess_exec(
@@ -424,25 +422,25 @@ async def iter_chats(client):
     return chats
 
 
-async def fetch_audio(client, message):
+async def fetch_audio(_, message):
     """Fetch Audio From Videos Or Audio Itself"""
     c_time = time.time()
     if not message.reply_to_message:
         await message.edit("`Reply To A Video / Audio.`")
         return
-    warner_stark = message.reply_to_message
-    if warner_stark.audio is None and warner_stark.video is None:
+    replied = message.reply_to_message
+    if replied.audio is None and replied.video is None:
         await message.edit("`Format Not Supported`")
         return
-    if warner_stark.video:
+    if replied.video:
         await message.edit("`Video Detected, Converting To Audio !`")
-        warner_bros = await message.reply_to_message.download(
+        file_path = await message.reply_to_message.download(
             progress=progress, progress_args=(message, c_time, f"`Downloading Audio!`")
         )
-        stark_cmd = f"ffmpeg -i {warner_bros} -map 0:a friday.mp3"
-        await runcmd(stark_cmd)
+        ffmpeg_cmd = f"ffmpeg -i {file_path} -map 0:a friday.mp3"
+        await run_cmd(ffmpeg_cmd)
         final_warner = "friday.mp3"
-    elif warner_stark.audio:
+    elif replied.audio:
         await message.edit("`Download Started !`")
         final_warner = await message.reply_to_message.download(
             progress=progress, progress_args=(message, c_time, f"`Downloading Video!`")

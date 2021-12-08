@@ -6,13 +6,12 @@
 #
 # All rights reserved.
 
+import os
+import pytz
 import inspect
 import logging
-import os
 from datetime import datetime
 from traceback import format_exc
-import asyncio
-import pytz
 from pyrogram import ContinuePropagation, StopPropagation, filters
 from pyrogram.errors.exceptions.bad_request_400 import (
     MessageIdInvalid,
@@ -30,7 +29,6 @@ from main_startup import (
     Friday2,
     Friday3,
     Friday4,
-    bot
 )
 from main_startup.config_var import Config
 from main_startup.helper_func.basic_helpers import is_admin_or_owner
@@ -62,7 +60,7 @@ def friday_on_cmd(
     group: int = 0,
     pm_only: bool = False,
     group_only: bool = False,
-    chnnl_only: bool = False,
+    channel_only: bool = False,
     only_if_admin: bool = False,
     ignore_errors: bool = False,
     propagate_to_next_handler: bool = True,
@@ -73,14 +71,14 @@ def friday_on_cmd(
 ):
     """- Main Decorator To Register Commands. -"""
     if disable_sudo:
-        filterm = (
+        base_filters = (
         filters.me
         & filters.command(cmd, Config.COMMAND_HANDLER)
         & ~filters.via_bot
         & ~filters.forwarded
     )
     else:
-        filterm = (
+        base_filters = (
             (filters.me | _sudo)
             & filters.command(cmd, Config.COMMAND_HANDLER)
             & ~filters.via_bot
@@ -108,7 +106,7 @@ def friday_on_cmd(
             if group_only and chat_type != "supergroup":
                 await edit_or_reply(message, "`Are you sure this is a group?`")
                 return
-            if chnnl_only and chat_type != "channel":
+            if channel_only and chat_type != "channel":
                 await edit_or_reply(message, "This Command Only Works In Channel!")
                 return
             if pm_only and chat_type != "private":
@@ -151,7 +149,7 @@ def friday_on_cmd(
                         await client.send_message(Config.LOG_GRP, text)
                     except BaseException:
                         logging.error(text)
-        add_handler(filterm, wrapper, cmd)
+        add_handler(base_filters, wrapper, cmd)
         return wrapper
     return decorator
 
@@ -213,21 +211,21 @@ def add_help_menu(
         if "xtraplugins" in previous_stack_frame.filename:
             is_official = False
         file_name = os.path.basename(previous_stack_frame.filename.replace(".py", ""))
-    cmd_helpz = example.format(ch=Config.COMMAND_HANDLER)
-    cmd_helper = f"**Module Name :** `{file_name.replace('_', ' ').title()}` \n\n**Command :** `{Config.COMMAND_HANDLER}{cmd}` \n**Help :** `{cmd_help}` \n**Example :** `{cmd_helpz}`"
+    cmd_help_note = example.format(ch=Config.COMMAND_HANDLER)
+    cmd_help_note = f"**Module Name :** `{file_name.replace('_', ' ').title()}` \n\n**Command :** `{Config.COMMAND_HANDLER}{cmd}` \n**Help :** `{cmd_help}` \n**Example :** `{cmd_help_note}`"
     if is_official:
         if file_name not in CMD_LIST.keys():
-            CMD_LIST[file_name] = cmd_helper
+            CMD_LIST[file_name] = cmd_help_note
         else:
             CMD_LIST[
                 file_name
-            ] += f"\n\n**Command :** `{Config.COMMAND_HANDLER}{cmd}` \n**Help :** `{cmd_help}` \n**Example :** `{cmd_helpz}`"
+            ] += f"\n\n**Command :** `{Config.COMMAND_HANDLER}{cmd}` \n**Help :** `{cmd_help}` \n**Example :** `{cmd_help_note}`"
     elif file_name not in XTRA_CMD_LIST.keys():
-        XTRA_CMD_LIST[file_name] = cmd_helper
+        XTRA_CMD_LIST[file_name] = cmd_help_note
     else:
         XTRA_CMD_LIST[
             file_name
-        ] += f"\n\n**Command :** `{Config.COMMAND_HANDLER}{cmd}` \n**Help :** `{cmd_help}` \n**Example :** `{cmd_helpz}`"
+        ] += f"\n\n**Command :** `{Config.COMMAND_HANDLER}{cmd}` \n**Help :** `{cmd_help}` \n**Example :** `{cmd_help_note}`"
             
 
 def add_handler(filter_s, func_, cmd):

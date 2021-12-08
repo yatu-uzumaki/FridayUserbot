@@ -403,7 +403,7 @@ async def edit_or_send_as_file(
     if len(text) > 1024:
         await message.edit("`OutPut is Too Large, Sending As File!`")
         file_names = f"{file_name}.text"
-        open(file_names, "w").write(text)
+        open(file_names, "w", encoding='utf-8').write(text)
         await client.send_document(message.chat.id, file_names, caption=caption)
         await message.delete()
         if os.path.exists(file_names):

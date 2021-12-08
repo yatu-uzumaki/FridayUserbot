@@ -75,6 +75,7 @@ async def run_cmd(cmd: str) -> Tuple[str, str, int, int]:
 
 
 async def update_it():
+    logging.info("[UPDATER] - Checking git for new available updates...")
     """Update Userbot On StartUps."""
     try:
         repo = Repo()

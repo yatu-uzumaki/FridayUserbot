@@ -106,7 +106,7 @@ async def user_s(client, message):
     total_users = await get_all_users()
     for starked in total_users:
         users_list += ("==> {} \n").format(int(starked.get("user_id")))
-    with open("users.txt", "w") as f:
+    with open("users.txt", "w", encoding='utf-8') as f:
         f.write(users_list)
     await message.reply_document("users.txt", caption="Users In Your dB")
 

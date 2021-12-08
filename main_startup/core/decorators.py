@@ -211,21 +211,20 @@ def add_help_menu(
         if "xtraplugins" in previous_stack_frame.filename:
             is_official = False
         file_name = os.path.basename(previous_stack_frame.filename.replace(".py", ""))
-    cmd_help_note = example.format(ch=Config.COMMAND_HANDLER)
-    cmd_help_note = f"<b>Module Name :</b> <code>{file_name.replace('_', ' ').title()}</code> \n\n<b>Command :</b> <code>{Config.COMMAND_HANDLER}{cmd}</code> \n<b>Help :</b> <code>{cmd_help}</code> \n<b>Example :</b> <code>{cmd_help_note}</code>"
+    cmd_help_note = f"<b>Module Name :</b> <code>{file_name.replace('_', ' ').title()}</code> \n\n<b>Command :</b> <code>{Config.COMMAND_HANDLER}{cmd}</code> \n<b>Help :</b> <code>{cmd_help}</code> \n<b>Example :</b> <code>{example.format(ch=Config.COMMAND_HANDLER)}</code>"
     if is_official:
         if file_name not in CMD_LIST.keys():
             CMD_LIST[file_name] = cmd_help_note
         else:
             CMD_LIST[
                 file_name
-            ] += f"\n\n<b>Command :</b> <code>{Config.COMMAND_HANDLER}{cmd}</code> \n<b>Help :</b> <code>{cmd_help}</code> \n<b>Example :</b> <code>{cmd_help_note}</code>"
+            ] += f"\n\n<b>Command :</b> <code>{Config.COMMAND_HANDLER}{cmd}</code> \n<b>Help :</b> <code>{cmd_help}</code> \n<b>Example :</b> <code>{example.format(ch=Config.COMMAND_HANDLER)}</code>"
     elif file_name not in XTRA_CMD_LIST.keys():
         XTRA_CMD_LIST[file_name] = cmd_help_note
     else:
         XTRA_CMD_LIST[
             file_name
-        ] += f"\n\n<b>Command :</b> <code>{Config.COMMAND_HANDLER}{cmd}</code> \n<b>Help :</b> <code>{cmd_help}</code> \n<b>Example :</b> <code>{cmd_help_note}</code>"
+        ] += f"\n\n<b>Command :</b> <code>{Config.COMMAND_HANDLER}{cmd}</code> \n<b>Help :</b> <code>{cmd_help}</code> \n<b>Example :</b> <code>{example.format(ch=Config.COMMAND_HANDLER)}</code>"
             
 
 def add_handler(filter_s, func_, cmd):

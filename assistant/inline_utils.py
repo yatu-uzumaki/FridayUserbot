@@ -608,7 +608,6 @@ async def give_plugin_cmds(client, cb: CallbackQuery):
     cmd_list = CMD_LIST if is_official else XTRA_CMD_LIST
     help_string = f"💡 <b>PLUGIN NAME</b> 💡 : <code>{plugin_name}</code> \n{cmd_list[plugin_name]}"
     help_string += "\n\n<b>(C) @FRIDAYOT</b>"
-    logging.info(help_string)
     await cb.edit_message_text(
         help_string,
         reply_markup=InlineKeyboardMarkup(

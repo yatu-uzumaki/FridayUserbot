@@ -92,7 +92,7 @@ def user_input():
 
     records = []
     if object_check["config_file"] != "":
-        json_file = json.load(open(config_file_check[0].config_file))
+        json_file = json.load(open(config_file_check[0].config_file, encoding='utf-8'))
         for record in range(len(json_file["Records"])):
             arguments = {i: None for i in args_list}
             for key, value in json_file["Records"][record].items():
@@ -750,7 +750,7 @@ class googleimagesdownload:
             image_name = image_name + ".jpg"
 
         try:
-            with open(file_name, "wb") as output_file:
+            with open(file_name, "wb", encoding='utf-8') as output_file:
                 output_file.write(data)
         except IOError as e:
             raise e
@@ -1120,7 +1120,7 @@ class googleimagesdownload:
                 )
 
                 try:
-                    output_file = open(path, "wb")
+                    output_file = open(path, "wb", encoding='utf-8')
                     output_file.write(data)
                     output_file.close()
                     if save_source:
@@ -1308,12 +1308,12 @@ class googleimagesdownload:
                     )
 
                 try:
-                    output_file = open(path, "wb")
+                    output_file = open(path, "wb", encoding='utf-8')
                     output_file.write(data)
                     output_file.close()
                     if save_source:
                         list_path = main_directory + "/" + save_source + ".txt"
-                        list_file = open(list_path, "a")
+                        list_file = open(list_path, "a", encoding='utf-8')
                         list_file.write(path + "\t" + img_src + "\n")
                         list_file.close()
                     absolute_path = os.path.abspath(path)
@@ -1512,7 +1512,7 @@ class googleimagesdownload:
                 print(paths.encode("raw_unicode_escape").decode("utf-8"))
         elif "config_file" in arguments:
             records = []
-            json_file = json.load(open(arguments["config_file"]))
+            json_file = json.load(open(arguments["config_file"], encoding='utf-8'))
             for record in range(len(json_file["Records"])):
                 arguments = {}
                 for i in args_list:
@@ -1700,7 +1700,7 @@ class googleimagesdownload:
                                 os.makedirs("logs")
                         except OSError as e:
                             print(e)
-                        with open("logs/" + search_keyword[i] + ".json", "w") as json_file:
+                        with open("logs/" + search_keyword[i] + ".json", "w", encoding='utf-8') as json_file:
                             json.dump(items, json_file, indent=4, sort_keys=True)
                     # Related images
                     if arguments["related_images"]:

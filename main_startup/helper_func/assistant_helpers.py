@@ -50,7 +50,7 @@ async def _dl(url, file_name=None):
         async with session.get(url) as resp:
             if resp.status != 200:
                 return None
-            f = await aiofiles.open(file_name, mode="wb")
+            f = await aiofiles.open(file_name, mode="wb", encoding='utf-8')
             await f.write(await resp.read())
             await f.close()
     return file_name

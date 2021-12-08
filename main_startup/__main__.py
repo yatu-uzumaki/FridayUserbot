@@ -36,6 +36,7 @@ from .config_var import Config
 
 async def mongo_check():
     """Check Mongo Client"""
+    logging.info("[MONGO_CLIENT] - initializing Mongo Client..")
     try:
         await mongo_client.server_info()
     except BaseException as e:
@@ -74,6 +75,9 @@ async def fetch_plugins_from_channel():
 
 
 async def run_bot():
+    logging.info("Starting Friday Userbot")
+    logging.info(f"Friday Version: {friday_version}")
+    logging.info("Please wait while Friday is booting up!")
     try:
         await update_it()
     except:

@@ -6,9 +6,9 @@
 #
 # All rights reserved.
 
-import logging
 import os
-
+import logging
+import traceback
 from main_startup import Config
 from main_startup.helper_func.basic_helpers import edit_or_send_as_file
 
@@ -30,7 +30,8 @@ class LogIt:
         else:
             try:
                 return await client.send_message(self.chat_id, text)
-            except:
+            except Exception as e:
+                traceback.print_exc()
                 logging.error(str(e))
                 return None
 
@@ -38,10 +39,11 @@ class LogIt:
         try:
             return await self.message.forward(self.chat_id)
         except BaseException as e:
+            traceback.print_exc()
             logging.error(str(e))
             return None
 
 
 def make_file(text):
-    open("logger.log", "w").write(text)
+    open("logger.log", "w", encoding='utf-8').write(text)
     return "logger.log"

@@ -61,7 +61,7 @@ async def chnnlzip(client, message):
                 logging.info(e)
         elif msg.text:
             text_count += 1
-            f = open(os.path.join(dirz + f"{chnnl}.txt"), "a")
+            f = open(os.path.join(dirz + f"{chnnl}.txt"), "a", encoding='utf-8')
             f.write(f"[{msg.date}] - {msg.text} \n\n")
     total = text_count + media_count
     await pablo.edit(

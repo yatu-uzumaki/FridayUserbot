@@ -12,6 +12,7 @@ import os
 import subprocess
 import textwrap
 from json import JSONDecodeError
+from typing import Union
 import numpy as np
 from PIL import Image, ImageDraw
 import requests
@@ -64,7 +65,7 @@ def generate_meme(
     im.save(ok, "WebP")
 
 
-async def convert_to_image(message, client) -> [None, str]:
+async def convert_to_image(message, client) -> Union[None, str]:
     """Convert Most Media Formats To Raw Image"""
     if not message:
         return None

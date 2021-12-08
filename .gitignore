@@ -130,3 +130,4 @@ dmypy.json
 *.env
 not4u.json
 secret.json
+eval-result.text

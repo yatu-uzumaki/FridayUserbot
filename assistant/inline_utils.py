@@ -6,40 +6,31 @@
 #
 # All rights reserved.
 
-import logging
 import re
-import string
-from random import choice
+import re
 import sys
-#import datetime
-from datetime import datetime
-from os import environ, execle, path, remove
-import platform
-from bot_utils_files.Localization.engine import language_string
-import re
-import socket
 import time
 import uuid
+import string
+import socket
 import psutil
-from pyrogram import __version__
-import heroku3
-from git import Repo
-from git.exc import GitCommandError, InvalidGitRepositoryError, NoSuchPathError
+import logging
+import platform
 import requests
-from bs4 import BeautifulSoup
-from pyrogram import __version__, filters
-from pyrogram.types import (
-    InlineKeyboardButton,
-    InlineKeyboardMarkup,
-    InlineQueryResultArticle,
-    InlineQueryResultPhoto,
-    InputTextMessageContent,
-)
+from git import Repo
+from random import choice
+from os import environ, execle
+from pyrogram import __version__
 from tinydb import Query, TinyDB
-from main_startup.core.startup_helpers import run_cmd
-from main_startup import CMD_LIST, XTRA_CMD_LIST, Friday, bot, friday_version
+from googletrans import LANGUAGES
+from database.localdb import set_lang
+from pyrogram import __version__, filters
 from main_startup.config_var import Config
 from youtubesearchpython import SearchVideos
+from main_startup.core.startup_helpers import run_cmd
+from bot_utils_files.Localization.engine import language_string
+from main_startup import CMD_LIST, XTRA_CMD_LIST, Friday, bot, friday_version
+from git.exc import GitCommandError, InvalidGitRepositoryError, NoSuchPathError
 from main_startup.helper_func.basic_helpers import (
     cb_wrapper,
     humanbytes,
@@ -47,13 +38,16 @@ from main_startup.helper_func.basic_helpers import (
     inline_wrapper,
     paginate_help,
 )
-
-import os
-from main_startup.helper_func.assistant_helpers import _dl, download_yt
-from pyrogram.types import InputMediaDocument, InputMediaVideo, InputMediaAudio
-from googletrans import LANGUAGES
-
-from database.localdb import set_lang
+from pyrogram.types import (
+    Message,
+    CallbackQuery,
+    InlineQuery,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    InlineQueryResultArticle,
+    InlineQueryResultPhoto,
+    InputTextMessageContent,
+)
 
 db_m = TinyDB("./main_startup/Cache/secret.json")
 db_s = TinyDB("./main_startup/Cache/not4u.json")
@@ -65,7 +59,8 @@ BRANCH_ = Config.U_BRANCH
 
 @bot.on_inline_query()
 @inline_wrapper
-async def owo(client, inline_query):
+async def owo(client, inline_query: InlineQuery):
+    results = []
     string_given = inline_query.query.lower()
     if string_given.startswith("not4u"):
         if ";" not in string_given:
@@ -78,7 +73,7 @@ async def owo(client, inline_query):
         except BaseException as e:
             logging.error(str(e))
             return
-        owo = (
+        username = (
             f"@{ui.username}"
             if ui.username
             else f"[{ui.first_name}](tg://user?id={ui.id})"
@@ -87,7 +82,7 @@ async def owo(client, inline_query):
         randomc = "".join(choice(chars) for _ in range(4))
         stark_data = {"secret_code": randomc, "id": ui.id, "msg": msg}
         db_s.insert(stark_data)
-        texts = f"Everyone Except {owo} Can Read This Message. \nClick Below To Check Message! \n**Note :** `Only He/She Can't Open It!`"
+        texts = f"Everyone Except {username} Can Read This Message. \nClick Below To Check Message! \n<b>Note :</b> <code>Only He/She Can't Open It!</code>"
         ok_s = [
             (
                 results.append(
@@ -210,11 +205,11 @@ async def owo(client, inline_query):
             else f"[{ui.first_name}](tg://user?id={ui.id})"
         )
         chars = string.hexdigits
-        randomc = "".join(choice(chars) for _ in range(4))
-        stark_data = {"secret_code": randomc, "id": ui.id, "msg": msg}
+        random_hash = "".join(choice(chars) for _ in range(4))
+        stark_data = {"secret_code": random_hash, "id": ui.id, "msg": msg}
         db_m.insert(stark_data)
-        texts = f"A Whisper Has Been Sent For {owo} . \nClick Below To Check Message! \n**Note :** `Only He/She Can Open It!`"
-        ok_s = [
+        texts = f"A Whisper Has Been Sent For {owo} . \nClick Below To Check Message! \n<b>Note :</b> <code>Only He/She Can Open It!</code>"
+        results = [
             (
                 InlineQueryResultArticle(
                     title="Ssh! This is A Secret Message",
@@ -222,19 +217,19 @@ async def owo(client, inline_query):
                         [
                             [
                                 InlineKeyboardButton(
-                                    text="Show Message !", callback_data=f"sc_{randomc}"
+                                    text="Show Message !", callback_data=f"sc_{random_hash}"
                                 )
                             ]
                         ]
                     ),
-                    input_message_content=InputTextMessageContent(texts),
+                    input_message_content=InputTextMessageContent(texts, parse_mode="html"),
                 )
             )
         ]
-        await client.answer_inline_query(inline_query.id, cache_time=0, results=ok_s)
+        await client.answer_inline_query(inline_query.id, cache_time=0, results=results)
     elif string_given.startswith("help"):
         total_ = len(CMD_LIST)
-        bttn = [
+        buttons = [
             [
                 InlineKeyboardButton(
                     text="Command Help", callback_data=f"make_cmd_buttons"
@@ -263,7 +258,7 @@ async def owo(client, inline_query):
         ]
         if Config.LOAD_UNOFFICIAL_PLUGINS:
             total_ = len(XTRA_CMD_LIST) + len(CMD_LIST)
-        nice_text = f"**FridayUserBot Commands** \n**Friday Version :** __{friday_version}__ \n**PyroGram Version :** __{__version__}__ \n**Total Plugins Loaded :** __{total_}__"
+        txt = f"<b>FridayUserBot Commands</b> \n<b>Friday Version :</b> <i>{friday_version}</i> \n<b>Pyrogram Version :</b> <i>{__version__}</i> \n<b>Total Plugins Loaded :</b> <code>{total_}</code>"
         await client.answer_inline_query(
             inline_query.id,
             cache_time=0,
@@ -271,8 +266,8 @@ async def owo(client, inline_query):
                 (
                     InlineQueryResultArticle(
                         title="Help Article!",
-                        reply_markup=InlineKeyboardMarkup(bttn),
-                        input_message_content=InputTextMessageContent(nice_text),
+                        reply_markup=InlineKeyboardMarkup(buttons),
+                        input_message_content=InputTextMessageContent(txt, parse_mode="html"),
                     )
                 )
             ],
@@ -280,17 +275,17 @@ async def owo(client, inline_query):
 
 @bot.on_callback_query(filters.regex(pattern="set_lang_(.*)"))
 @cb_wrapper
-async def st_lang(client, cb):
+async def st_lang(_, cb: CallbackQuery):
     lang = cb.matches[0].group(1)
     await set_lang(lang)
-    str_ = f"**UserBot Language Changed To** `{LANGUAGES[lang].title()}` \n`Please Restart To Update Changes!`"
-    await cb.edit_message_text(str_)
+    txt = f"<b>UserBot Language Changed To</b> <code>{LANGUAGES[lang].title()}</code>\n<code>Please Restart To Update Changes!</code>"
+    await cb.edit_message_text(txt, parse_mode="html")
 
 @bot.on_callback_query(filters.regex(pattern="change_lang"))
 @cb_wrapper
-async def change_lang(client, cb):
+async def change_lang(_, cb: CallbackQuery):
     nice_text = "Select A Language From Below :"
-    bttns_d = [
+    buttons = [
         [
             InlineKeyboardButton(
                 text=LANGUAGES[lang_].title(),
@@ -300,7 +295,7 @@ async def change_lang(client, cb):
         for lang_ in language_string.keys()
     ]
 
-    await cb.edit_message_text(nice_text, reply_markup=InlineKeyboardMarkup(bttns_d))
+    await cb.edit_message_text(nice_text, reply_markup=InlineKeyboardMarkup(buttons))
     
 
 @bot.on_callback_query(filters.regex(pattern="ytdl_(.*)_(video|audio)"))
@@ -378,9 +373,9 @@ async def nothing_here(client, cb):
     
 @bot.on_callback_query(filters.regex(pattern="backO_to_help_menu"))
 @cb_wrapper
-async def black_menu(client, cb):
+async def black_menu(_, cb: CallbackQuery):
     total_ = len(CMD_LIST)
-    bttn = [
+    buttons = [
             [
                 InlineKeyboardButton(
                     text="Command Help", callback_data=f"make_cmd_buttons"
@@ -409,8 +404,8 @@ async def black_menu(client, cb):
         ]
     if Config.LOAD_UNOFFICIAL_PLUGINS:
         total_ = len(XTRA_CMD_LIST) + len(CMD_LIST)
-    nice_text = f"**FridayUserBot Commands** \n**Friday Version :** __{friday_version}__ \n**PyroGram Version :** __{__version__}__ \n**Total Plugins Loaded :** __{total_}__"
-    await cb.edit_message_text(nice_text, reply_markup=InlineKeyboardMarkup(bttn))
+    txt = f"<b>FridayUserBot Commands</b> \n<b>Friday Version :</b> <i>{friday_version}</i> \n<b>Pyrogram Version :</b> <i>{__version__}</i> \n<b>Total Plugins Loaded :</b> <code>{total_}</code>"
+    await cb.edit_message_text(txt, reply_markup=InlineKeyboardMarkup(buttons), parse_mode="html")
 
 @bot.on_callback_query(filters.regex(pattern="make_cmd_buttons"))
 @cb_wrapper
@@ -460,7 +455,7 @@ async def roaststart(client, cb):
                 )
             ]
     ]
-    await cb.edit_message_text("`Please Wait, Restarting... This May Take A While`", reply_markup=InlineKeyboardMarkup(bttn))
+    await cb.edit_message_text("<code>Please wait, restarting... This may take A while.</code>", reply_markup=InlineKeyboardMarkup(bttn))
     args = [sys.executable, "-m", "main_startup"]
     execle(sys.executable, *args, environ)
     exit()
@@ -480,7 +475,7 @@ async def update_it(client, cb):
         repo = Repo()
     except GitCommandError:
         return await cb.edit_message_text(
-            "`Invalid Git Command. Please Report This Bug To @FridayOT`",
+            "<code>Invalid Git Command. Please Report This Bug To @FridayOT</code>",
             reply_markup=InlineKeyboardMarkup(bttn)
         )
     except InvalidGitRepositoryError:
@@ -495,7 +490,7 @@ async def update_it(client, cb):
         repo.heads.master.checkout(True)
     if repo.active_branch.name != Config.U_BRANCH:
         return await cb.edit_message_text(
-            f"`Seems Like You Are Using Custom Branch - {repo.active_branch.name}! Please Switch To {Config.U_BRANCH} To Make This Updater Function!`", reply_markup=InlineKeyboardMarkup(bttn))
+            f"<code>Seems Like You Are Using Custom Branch - {repo.active_branch.name}! Please Switch To {Config.U_BRANCH} To Make This Updater Function!</code>", reply_markup=InlineKeyboardMarkup(bttn))
     try:
         repo.create_remote("upstream", REPO_)
     except BaseException:
@@ -508,7 +503,7 @@ async def update_it(client, cb):
         except GitCommandError:
             repo.git.reset("--hard", "FETCH_HEAD")
         await run_cmd("pip3 install --no-cache-dir -r requirements.txt")
-        await cb.edit_message_text("`Updated Sucessfully! Give Me A min To Restart!`", reply_markup=InlineKeyboardMarkup(bttn))
+        await cb.edit_message_text("`Updated Successfully! Give Me A min To Restart!`", reply_markup=InlineKeyboardMarkup(bttn))
         args = [sys.executable, "-m", "main_startup"]
         execle(sys.executable, *args, environ)
         exit()
@@ -553,20 +548,20 @@ async def fuck_arch_btw(client, cb):
     psutil.disk_io_counters()
     disk = f"{humanbytes(du.used)} / {humanbytes(du.total)} " f"({du.percent}%)"
     cpu_len = len(psutil.Process().cpu_affinity())
-    neat_msg = f"""**System Info**
+    neat_msg = f"""<b>System Info</b>
     
-**PlatForm :** `{splatform}`
-**PlatForm - Release :** `{platform_release}`
-**PlatFork - Version :** `{platform_version}`
-**Architecture :** `{architecture}`
-**Hostname :** `{hostname}`
-**IP :** `{ip_address}`
-**Mac :** `{mac_address}`
-**Processor :** `{processor}`
-**Ram : ** `{ram}`
-**CPU :** `{cpu_len}`
-**CPU FREQ :** `{cpu_freq}`
-**DISK :** `{disk}`
+<b>PlatForm :</b> <code>{splatform}</code>
+<b>PlatForm - Release :</b> <code>{platform_release}</code>
+<b>PlatFork - Version :</b> <code>{platform_version}</code>
+<b>Architecture :</b> <code>{architecture}</code>
+<b>Hostname :</b> <code>{hostname}</code>
+<b>IP :</b> <code>{ip_address}</code>
+<b>Mac :</b> <code>{mac_address}</code>
+<b>Processor :</b> <code>{processor}</code>
+<b>Ram :</b>  <code>{ram}</code>
+<b>CPU :</b> <code>{cpu_len}</code>
+<b>CPU FREQ :</b> <code>{cpu_freq}</code>
+<b>DISK :</b> <code>{disk}</code>
     """
     await cb.edit_message_text(neat_msg, reply_markup=InlineKeyboardMarkup(bttn))
 
@@ -583,7 +578,7 @@ async def wow_nice(client, cb):
         v_t = CMD_LIST
         bttn = paginate_help(0, CMD_LIST, "helpme", is_official=nice)
     await cb.edit_message_text(
-        f"Command List & Help \n**Total Commands :** `{len(v_t)}` \n**(C) @FRIDAYOT**",
+        f"Command List & Help \n<b>Total Commands :</b> <code>{len(v_t)}</code> \n<b>(C) @FRIDAYOT</b>",
         reply_markup=InlineKeyboardMarkup(bttn),
     )
 
@@ -591,7 +586,7 @@ async def wow_nice(client, cb):
 @bot.on_callback_query(filters.regex(pattern="cleuse"))
 @cb_wrapper
 async def close_it_please(client, cb):
-    await cb.edit_message_text("**Closed Help Menu**!")
+    await cb.edit_message_text("<b>Closed Help Menu!</b>")
 
 
 @bot.on_callback_query(filters.regex(pattern="backme_(.*)_(True|False)"))
@@ -601,18 +596,19 @@ async def get_back_vro(client, cb):
     is_official = cb.matches[0].group(2) != "False"
     cmd_list = CMD_LIST if is_official else XTRA_CMD_LIST
     buttons = paginate_help(page_number, cmd_list, "helpme", is_official=is_official)
-    nice_text = f"**FridayUserBot Commands & Help Menu!** \n\n**Friday Version :** __{friday_version}__ \n**PyroGram Version :** __{__version__}__ \n**Total Plugins Loaded :** __{len(CMD_LIST)}__"
-    await cb.edit_message_text(nice_text, reply_markup=InlineKeyboardMarkup(buttons))
+    txt = f"<b>FridayUserBot Commands</b> \n<b>Friday Version :</b> <i>{friday_version}</i> \n<b>Pyrogram Version :</b> <i>{__version__}</i> \n<b>Total Plugins Loaded :</b> <code>{len(CMD_LIST)}</code>"
+    await cb.edit_message_text(txt, reply_markup=InlineKeyboardMarkup(buttons))
 
 
 @bot.on_callback_query(filters.regex(pattern="us_plugin_(.*)_(True|False)"))
 @cb_wrapper
-async def give_plugin_cmds(client, cb):
+async def give_plugin_cmds(client, cb: CallbackQuery):
     plugin_name, page_number = cb.matches[0].group(1).split("|", 1)
     is_official = cb.matches[0].group(2) != "False"
     cmd_list = CMD_LIST if is_official else XTRA_CMD_LIST
-    help_string = f"**💡 PLUGIN NAME 💡 :** `{plugin_name}` \n{cmd_list[plugin_name]}"
-    help_string += "\n\n**(C) @FRIDAYOT** ".format(plugin_name)
+    help_string = f"💡 <b>PLUGIN NAME</b> 💡 : <code>{plugin_name}</code> \n{cmd_list[plugin_name]}"
+    help_string += "\n\n<b>(C) @FRIDAYOT</b>"
+    logging.info(help_string)
     await cb.edit_message_text(
         help_string,
         reply_markup=InlineKeyboardMarkup(
@@ -625,6 +621,7 @@ async def give_plugin_cmds(client, cb):
                 ]
             ]
         ),
+        parse_mode="html",
     )
 
 
